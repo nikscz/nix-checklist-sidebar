@@ -4,7 +4,7 @@
 
 **Claudes Plan als Checkliste – in einfacher Sprache, in einer schmalen Leiste rechts.**
 
-<img src="docs/overview-sidebar.png" alt="Die Checkliste in einer schmalen Leiste rechts in Claude" width="100%">
+<img src="docs/demo-de.gif" alt="Die Checkliste in einer schmalen Leiste rechts in Claude" width="100%">
 
 ## Das Problem
 
@@ -56,7 +56,7 @@ dem Eingabefeld die Schritte als Pills – und schätzt, wie lange Claude noch b
 
 Zusammen mit dem Add-on [nix-progress-bar](https://github.com/nikscz/nix-progress-bar):
 
-<img src="docs/overview-both.png" alt="Checkliste rechts, Fortschrittsbalken über dem Eingabefeld" width="100%">
+<img src="docs/both-de.gif" alt="Checkliste rechts, Fortschrittsbalken über dem Eingabefeld" width="100%">
 
 ## Datenschutz & Sicherheit
 

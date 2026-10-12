@@ -4,7 +4,7 @@
 
 **Claude's plan as a checklist – in plain words, in a narrow sidebar.**
 
-<img src="docs/overview-sidebar.png" alt="The checklist in a narrow sidebar on the right of Claude" width="100%">
+<img src="docs/demo-en.gif" alt="The checklist in a narrow sidebar on the right of Claude" width="100%">
 
 ## The problem
 
@@ -56,7 +56,7 @@ shows the steps as pills too – and estimates how long Claude still needs.
 
 Together with the add-on [nix-progress-bar](https://github.com/nikscz/nix-progress-bar):
 
-<img src="docs/overview-both.png" alt="Checklist on the right, progress bar above the message box" width="100%">
+<img src="docs/both-en.gif" alt="Checklist on the right, progress bar above the message box" width="100%">
 
 ## Privacy & security
 
