@@ -27,8 +27,10 @@ Eine schmale Leiste rechts zeigt Claudes Plan als Checkliste, in Alltagssprache:
 
 **Befehl:** `/nix-checklist-sidebar` öffnet die Leiste jederzeit wieder.
 
-Am schönsten zusammen mit [nix-progress-bar](https://github.com/nikscz/nix-progress-bar):
-Dann zeigt auch die Leiste über dem Eingabefeld die Schritte als Pills.
+### Add-on: nix-progress-bar
+
+Mit [nix-progress-bar](https://github.com/nikscz/nix-progress-bar) dazu zeigt auch der Balken
+über dem Eingabefeld die Schritte als Pills – und schätzt, wie lange Claude noch braucht.
 
 ## Design
 

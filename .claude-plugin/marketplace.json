@@ -12,7 +12,7 @@
       "name": "nix-checklist-sidebar",
       "source": "./",
       "description": "Claudes Arbeitsplan als verständliche Checkliste in einer schmalen Seitenleiste – mit Uhrzeiten",
-      "version": "2.0.0"
+      "version": "2.1.0"
     }
   ]
 }
