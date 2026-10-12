@@ -4,6 +4,8 @@
 
 **Claudes Plan als Checkliste – in einfacher Sprache, in einer schmalen Leiste rechts.**
 
+<img src="docs/overview-sidebar.png" alt="Die Checkliste in einer schmalen Leiste rechts in Claude" width="100%">
+
 ## Das Problem
 
 Claude arbeitet oft minutenlang: liest Dateien, schreibt Code, sucht im Netz. Was es gerade vorhat und was schon fertig ist, steckt irgendwo im Chat – in Fachsprache, zwischen Befehlen und Code. Wer nicht programmiert, verliert schnell den Überblick.
@@ -47,6 +49,14 @@ Kein GitHub-Konto nötig.
 
 Mit [nix-progress-bar](https://github.com/nikscz/nix-progress-bar) dazu zeigt auch der Balken über
 dem Eingabefeld die Schritte als Pills – und schätzt, wie lange Claude noch braucht.
+
+## Screenshots
+
+<img src="docs/sidebar-done.png" alt="Alle Schritte erledigt, jeder mit Uhrzeit" width="320">
+
+Zusammen mit dem Add-on [nix-progress-bar](https://github.com/nikscz/nix-progress-bar):
+
+<img src="docs/overview-both.png" alt="Checkliste rechts, Fortschrittsbalken über dem Eingabefeld" width="100%">
 
 > [!WARNING]
 > **Frühe Version – Updates kommen.** Diese Art Erweiterung ist bei Claude Code noch ganz neu.

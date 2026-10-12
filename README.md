@@ -4,6 +4,8 @@
 
 **Claude's plan as a checklist – in plain words, in a narrow sidebar.**
 
+<img src="docs/overview-sidebar.png" alt="The checklist in a narrow sidebar on the right of Claude" width="100%">
+
 ## The problem
 
 Claude often works for minutes: reading files, writing code, searching the web. What it is about to do and what is already done hides somewhere in the chat – in jargon, between commands and code. If you don't code, you lose track fast.
@@ -47,6 +49,14 @@ No GitHub account needed.
 
 With [nix-progress-bar](https://github.com/nikscz/nix-progress-bar) the bar above the message box
 shows the steps as pills too – and estimates how long Claude still needs.
+
+## Screenshots
+
+<img src="docs/sidebar-done.png" alt="All steps done, each with its time" width="320">
+
+Together with the add-on [nix-progress-bar](https://github.com/nikscz/nix-progress-bar):
+
+<img src="docs/overview-both.png" alt="Checklist on the right, progress bar above the message box" width="100%">
 
 > [!WARNING]
 > **Early version – updates will come.** This kind of extension is still brand new in Claude Code.
