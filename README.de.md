@@ -74,7 +74,7 @@ kommt aber ohnehin in deiner Sprache.
 /plugin uninstall nix-checklist-sidebar@nix-checklist-sidebar
 ```
 
-## Mehr von nix
+## Mehr von nikscz
 
 - [nix-progress-bar](https://github.com/nikscz/nix-progress-bar) – Fortschrittsleiste mit Zeitschätzung
 - [nix-note](https://github.com/nikscz/nix-note) – Projekt-Notizen nebenbei mit /note

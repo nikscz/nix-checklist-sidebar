@@ -74,7 +74,7 @@ anyway.
 /plugin uninstall nix-checklist-sidebar@nix-checklist-sidebar
 ```
 
-## More from nix
+## More from nikscz
 
 - [nix-progress-bar](https://github.com/nikscz/nix-progress-bar) – progress bar with a time estimate
 - [nix-note](https://github.com/nikscz/nix-note) – project notes on the side with /note
