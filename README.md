@@ -35,11 +35,13 @@ No GitHub account needed.
 - The last step is always **"Deliver the result"** – ticked once the answer is out.
 - Earlier tasks stay as a log until you press **Clear**.
 - **No files:** the list lives in its chat only.
-- The panel follows your system language (German or English); Claude writes the steps in your language.
+- The panel follows your system language (German or English) – or one you pick; Claude writes the steps in your language.
 
 | Command | What happens |
 |---|---|
 | `/nix-checklist-sidebar` | opens the sidebar again any time |
+| `/nix-checklist-sidebar english` / `deutsch` | fixed language for the panel |
+| `/nix-checklist-sidebar auto` | follows the system language again |
 
 ### Add-on: nix-progress-bar
 
@@ -63,10 +65,10 @@ Or by hand, whenever you like:
 
 ### What's new
 
-**2.2.0 – German and English.** The tool's own labels now follow your system language: German
-on a German system, English everywhere else. Other languages (e.g. Spanish) get the English labels –
-but everything Claude writes itself (the steps, the thank-you, its answers) comes in your language
-anyway.
+**2.2 – German and English.** The tool's own labels follow your system language: German on a
+German system, English everywhere else – or pick it yourself with `/nix-checklist-sidebar english`, `deutsch` or
+`auto`. Other languages (e.g. Spanish) get the English labels – but everything Claude writes itself
+(the steps, the thank-you, its answers) comes in your language anyway.
 
 ## Uninstall
 

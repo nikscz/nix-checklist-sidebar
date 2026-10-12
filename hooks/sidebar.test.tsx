@@ -107,3 +107,17 @@ test('on an English system the panel speaks English', async ($, on) => {
   await ui.press({ key: 'leeren' })
   expect(await ui.find({ type: 'Text', text: /No plan yet/ })).toBeDefined()
 })
+
+test('english, deutsch and auto switch the panel language and stick', async ($, on) => {
+  mock.clock(on, { now: NOW })
+  mock.store(on)
+  system(on, 'de-DE')
+  on('ui.open', () => ({ value: { isPlaced: true } }) as never)
+  const cmd = async (args: string) => (await $.command.run({ command: 'nix-checklist-sidebar', args } as never)).text
+  expect(await cmd('english')).toBe('Now in English.')
+  const ui = await $.ui.mount({ plugin: 'nix-checklist-sidebar', surface: 'desktop', ...PANE })
+  expect(await ui.find({ type: 'Text', text: /No plan yet/ })).toBeDefined()
+  await ui.unmount()
+  expect(await cmd('auto')).toBe('Folgt wieder der Systemsprache.')
+  expect(await cmd('deutsch')).toBe('Jetzt auf Deutsch.')
+})

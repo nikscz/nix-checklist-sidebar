@@ -35,11 +35,13 @@ Kein GitHub-Konto nötig.
 - Letzter Schritt ist immer **„Ergebnis ausgeben“** – abgehakt, sobald die Antwort fertig ist.
 - Frühere Aufgaben bleiben als Protokoll stehen, bis du **Leeren** drückst.
 - **Keine Dateien:** Die Liste lebt nur im jeweiligen Chat.
-- Die Leiste folgt deiner Systemsprache (Deutsch oder Englisch); Claude schreibt die Schritte in deiner Sprache.
+- Die Leiste folgt deiner Systemsprache (Deutsch oder Englisch) – oder einer Sprache, die du festlegst; Claude schreibt die Schritte in deiner Sprache.
 
 | Befehl | Was passiert |
 |---|---|
 | `/nix-checklist-sidebar` | öffnet die Leiste jederzeit wieder |
+| `/nix-checklist-sidebar english` / `deutsch` | feste Sprache für die Leiste |
+| `/nix-checklist-sidebar auto` | folgt wieder der Systemsprache |
 
 ### Add-on: nix-progress-bar
 
@@ -63,10 +65,10 @@ Oder von Hand, wann immer du willst:
 
 ### Neu
 
-**2.2.0 – Deutsch und Englisch.** Die festen Wörter des Tools folgen jetzt deiner Systemsprache:
-Deutsch auf einem deutschen System, sonst Englisch. Andere Sprachen (z. B. Spanisch) bekommen die
-englischen Wörter – alles, was Claude selbst schreibt (die Schritte, der Danke-Satz, die Antworten),
-kommt aber ohnehin in deiner Sprache.
+**2.2 – Deutsch und Englisch.** Die festen Wörter des Tools folgen deiner Systemsprache: Deutsch auf
+einem deutschen System, sonst Englisch – oder du wählst selbst mit `/nix-checklist-sidebar english`, `deutsch`
+oder `auto`. Andere Sprachen (z. B. Spanisch) bekommen die englischen Wörter – alles, was Claude
+selbst schreibt (die Schritte, der Danke-Satz, die Antworten), kommt aber ohnehin in deiner Sprache.
 
 ## Deinstallieren
 

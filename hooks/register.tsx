@@ -3,7 +3,7 @@ import type { EngineInterface, Register } from 'claude-code'
 
 import type { Item, Status } from '../types'
 
-import { ASK_LANG, langOf } from './lang'
+import { ASK_LANG, SWITCHED, chosenLang, langOf } from './lang'
 import type { Lang } from './lang'
 
 const PANE = 'nix-checklist-sidebar'
@@ -173,7 +173,12 @@ const systemLang = async ($: EngineInterface): Promise<Lang> => {
   return (env && langOf(env)) || 'en'
 }
 
-const langOf$ = ($: EngineInterface) => (asked ??= systemLang($))
+// A language picked with the command wins over the system's.
+const LANG_KEY = 'language'
+const langOf$ = async ($: EngineInterface): Promise<Lang> => {
+  const picked = await $.store.get(LANG_KEY).catch(() => undefined)
+  return picked === 'de' || picked === 'en' ? picked : (asked ??= systemLang($))
+}
 
 export const register: Register = on => {
   // Tool calls of the main loop since the checklist last changed; a reload starts it over.
@@ -212,17 +217,21 @@ export const register: Register = on => {
     await $.command.register({
       name: COMMAND,
       description: WORDS[lang].open,
+      argumentHint: '[english | deutsch | auto]',
       immediate: true,
     })
 
     return next(e)
   })
 
-  on('command.run', { command: COMMAND }, async $ => {
+  on('command.run', { command: COMMAND }, async ($, e) => {
+    const picked = chosenLang(e.args)
+    if (picked === 'auto') await $.store.delete(LANG_KEY)
+    else if (picked !== null) await $.store.set(LANG_KEY, picked)
     const lang = await langOf$($)
     await show($, lang)
 
-    return { text: WORDS[lang].opened }
+    return { text: picked === null ? WORDS[lang].opened : SWITCHED[picked][lang] }
   })
 
   on('turn.complete', async ($, e, next) => {
