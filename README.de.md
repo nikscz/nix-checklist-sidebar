@@ -58,6 +58,26 @@ Zusammen mit dem Add-on [nix-progress-bar](https://github.com/nikscz/nix-progres
 
 <img src="docs/overview-both.png" alt="Checkliste rechts, Fortschrittsbalken über dem Eingabefeld" width="100%">
 
+## Datenschutz & Sicherheit
+
+Alles bleibt auf deinem Rechner:
+
+| Liest | Speichert |
+|---|---|
+| Namen der Werkzeuge, die Claude benutzt, und wie viele (für die Erinnerung) | nichts |
+| Die Schritte, die Claude schickt | nur im Chat-Speicher – weg, wenn der Chat endet |
+| – | deine Sprachwahl und ob der Danke-Satz schon kam, in Claude Codes Plugin-Speicher |
+
+**Schickt nichts irgendwohin.** Keine Internetverbindung, kein Tracking, keine Statistik – der Code
+enthält gar keine Netzwerkaufrufe. Er ist offen und kurz, jeder kann das nachprüfen.
+
+Zwei Dinge, die man wissen sollte:
+
+- **Sprach-Check:** Einmal pro Chat läuft ein harmloser Systembefehl, der deine Systemsprache liest –
+  `defaults read -g AppleLanguages` auf dem Mac, `(Get-Culture).TwoLetterISOLanguageName` in PowerShell unter Windows.
+- **Anweisungen an Claude:** Das Tool gibt Claude ein paar Zeilen mit (z. B. wie es das Tool benutzt, und den
+  einmaligen Danke-Satz). Nachlesen kannst du sie im Code.
+
 > [!WARNING]
 > **Frühe Version – Updates kommen.** Diese Art Erweiterung ist bei Claude Code noch ganz neu.
 > Nach einem Update von Anthropic kann etwas nicht mehr funktionieren, bis hier ein Fix kommt.
