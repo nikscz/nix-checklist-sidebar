@@ -1,0 +1,12 @@
+{
+  "name": "nix-checklist-sidebar",
+  "version": "2.0.0",
+  "description": "Claudes Arbeitsplan als verständliche Checkliste in einer schmalen Seitenleiste – mit Uhrzeiten",
+  "types": "./types/index.d.ts",
+  "author": {
+    "name": "nikscz",
+    "url": "https://github.com/nikscz"
+  },
+  "repository": "https://github.com/nikscz/nix-checklist-sidebar",
+  "license": "MIT"
+}
