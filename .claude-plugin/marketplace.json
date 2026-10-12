@@ -5,14 +5,14 @@
     "url": "https://github.com/nikscz"
   },
   "metadata": {
-    "description": "Claudes Arbeitsplan als verständliche Checkliste in einer schmalen Seitenleiste – mit Uhrzeiten"
+    "description": "Claude's work plan as a plain-language checklist in a narrow sidebar – with times"
   },
   "plugins": [
     {
       "name": "nix-checklist-sidebar",
       "source": "./",
-      "description": "Claudes Arbeitsplan als verständliche Checkliste in einer schmalen Seitenleiste – mit Uhrzeiten",
-      "version": "2.1.0"
+      "description": "Claude's work plan as a plain-language checklist in a narrow sidebar – with times",
+      "version": "2.2.0"
     }
   ]
 }

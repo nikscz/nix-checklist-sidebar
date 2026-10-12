@@ -1,4 +1,5 @@
 import { expect, mock, test } from 'claude-code/testing'
+import type { On } from 'claude-code'
 
 // Only the body's height matters to this mod's drawing.
 const PANE = {
@@ -8,6 +9,9 @@ const PANE = {
 } as const
 const TOOL = 'mcp__nix-checklist-sidebar__checkliste'
 const SURFACES = ['terminal', 'desktop'] as const
+// The system says German (a Mac answering `defaults read -g AppleLanguages`) or English.
+const system = (on: On, code: 'de-DE' | 'en-US') =>
+  on('process.run', () => ({ value: { exitCode: 0, stdout: `(\n    "${code}"\n)`, stderr: '' } }) as never)
 // 7 Oct 2026, 18:53 local time.
 const NOW = new Date(2026, 9, 7, 18, 53).getTime()
 
@@ -34,6 +38,7 @@ test('done steps keep their time and stay as a log under a new plan', async ($, 
 
 test('Leeren empties the log', async ($, on) => {
   mock.clock(on, { now: NOW })
+  system(on, 'de-DE')
   await $.tool.call({ tool: TOOL, items: [{ text: 'Seite bauen', status: 'completed' }] })
   const ui = await $.ui.mount({ plugin: 'nix-checklist-sidebar', surface: 'desktop', ...PANE })
   await ui.press({ key: 'leeren' })
@@ -63,15 +68,16 @@ test('no plan: a reminder after two tool calls; open plan: after five', async ($
   await lookup()
   expect(await bash()).toBe('')
   await lookup()
-  expect(await bash()).toContain('Lege jetzt eine an')
+  expect(await bash()).toContain('Create one now')
 
   await $.tool.call({ tool: TOOL, items: [{ text: 'Seite bauen', status: 'in_progress' }] })
   for (let i = 0; i < 4; i += 1) expect(await bash()).toBe('')
-  expect(await bash()).toContain('Hake Erledigtes ab')
+  expect(await bash()).toContain('Tick off what is done')
 })
 
 test('every plan ends with "Ergebnis ausgeben", ticked off when the answer is out', async ($, on) => {
   mock.clock(on, { now: NOW })
+  system(on, 'de-DE')
   on('turn.complete', () => ({ text: '' }))
   await $.tool.call({ tool: TOOL, items: [{ text: 'Witze suchen', status: 'completed' }] })
   const ui = await $.ui.mount({ plugin: 'nix-checklist-sidebar', surface: 'desktop', ...PANE })
@@ -90,4 +96,14 @@ test('the thank-you comes once, in the first chat after installing', async ($, o
   const names = async () => (await $.prompt.context({ blocks: [] } as never)).blocks.map(b => b.name)
   expect(await names()).toContain('nix-checklist-sidebar-danke')
   expect(await names()).not.toContain('nix-checklist-sidebar-danke')
+})
+
+test('on an English system the panel speaks English', async ($, on) => {
+  mock.clock(on, { now: NOW })
+  system(on, 'en-US')
+  await $.tool.call({ tool: TOOL, items: [{ text: 'Find jokes', status: 'completed' }] })
+  const ui = await $.ui.mount({ plugin: 'nix-checklist-sidebar', surface: 'desktop', ...PANE })
+  expect(await ui.find({ type: 'Text', text: /Deliver the result/ })).toBeDefined()
+  await ui.press({ key: 'leeren' })
+  expect(await ui.find({ type: 'Text', text: /No plan yet/ })).toBeDefined()
 })

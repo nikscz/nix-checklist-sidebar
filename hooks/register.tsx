@@ -3,25 +3,28 @@ import type { EngineInterface, Register } from 'claude-code'
 
 import type { Item, Status } from '../types'
 
+import { ASK_LANG, langOf } from './lang'
+import type { Lang } from './lang'
+
 const PANE = 'nix-checklist-sidebar'
-const TITLE = 'Checkliste'
 // All tools of this set start with /nix- so typing /nix lists them.
 const COMMAND = 'nix-checklist-sidebar'
 const items = atom({ plugin: 'nix-checklist-sidebar', key: 'items' } as const, [])
 
+// Written for Claude, in English; Claude writes the steps in the user's own language.
 const INSTRUCTIONS = [
-  '# Checkliste für den Nutzer',
-  'Bei jeder Aufgabe, für die du mehr als ein Werkzeug brauchst (bauen, programmieren, im Netz suchen, schreiben, aufräumen, Fehler suchen; ' +
-    'auch wenn sie klein wirkt, z. B. "such mir zwei Witze raus"; nur reine Antworten aus dem Kopf nicht) ' +
-    'lege als Erstes eine Aufgabenliste an, bevor du loslegst: mit dem Tool mcp__nix-checklist-sidebar__checkliste ' +
-    '(immer die ganze Liste mitschicken, auch bei jedem Abhaken). Ist es nicht da, nimm TaskCreate/TaskUpdate oder TodoWrite.',
-  'Der Nutzer ist kein Programmierer und liest diese Liste in einem Seitenfenster. Deshalb:',
-  '- Jeder Punkt in einfacher deutscher Alltagssprache, kurz (etwa 2–6 Wörter).',
-  '- Kein Fachjargon, keine Dateinamen, keine Befehle, keine Bibliotheksnamen.',
-  '- Beispiele: "Server anlegen", "Design anpassen", "Kontaktformular bauen", "Alles in meiner MD speichern", "Testen, ob alles läuft".',
-  '- Genau ein Punkt ist "in Arbeit"; hake jeden Punkt sofort ab, wenn er erledigt ist, nicht gesammelt am Ende.',
-  '- Kommt unterwegs etwas Neues dazu, ergänze es als eigenen Punkt.',
-  '- Den letzten Punkt "Ergebnis ausgeben" hängt das Tool selbst an; schreib ihn nicht in die Liste.',
+  '# Checklist for the user',
+  'For every task that needs more than one tool (building, coding, searching the web, writing, tidying up, ' +
+    'debugging; even when it looks small, e.g. "find me two jokes"; not for answers straight from your head), ' +
+    'first create a checklist before you start, with the tool mcp__nix-checklist-sidebar__checkliste ' +
+    '(always send the whole list, also each time you tick something off). If it is missing, use TaskCreate/TaskUpdate or TodoWrite.',
+  'The user may not be a programmer and reads this list in a narrow side panel. So:',
+  "- Each step in plain everyday words in the user's language, short (about 2–6 words).",
+  '- No jargon, no file names, no commands, no library names.',
+  '- Examples: "Set up the server", "Adjust the design", "Build the contact form", "Test that everything works".',
+  '- Exactly one step is in progress; tick each step off right when it is done, not all at the end.',
+  '- If something new comes up, add it as its own step.',
+  '- The tool adds the last step ("deliver the result") itself; do not put it in the list.',
 ].join('\n')
 
 const TOOL = 'mcp__nix-checklist-sidebar__checkliste'
@@ -30,11 +33,11 @@ const SCHEMA = {
   properties: {
     items: {
       type: 'array',
-      description: 'Die ganze Checkliste, in Reihenfolge',
+      description: 'The whole checklist, in order',
       items: {
         type: 'object',
         properties: {
-          text: { type: 'string', description: 'Schritt in einfacher Alltagssprache, 2–6 Wörter' },
+          text: { type: 'string', description: "One step in plain words in the user's language, 2–6 words" },
           status: { type: 'string', enum: ['pending', 'in_progress', 'completed'] },
         },
         required: ['text', 'status'],
@@ -53,11 +56,11 @@ const PLAN_TOOLS = new Set([TOOL, 'TodoWrite', 'TaskCreate', 'TaskUpdate'])
 // Looking up a tool is not work: it neither counts nor resets.
 const IGNORED_TOOLS = new Set(['ToolSearch', 'TaskList', 'TaskGet'])
 const REMIND_UPDATE =
-  'Erinnerung (Checkliste): Du hast eine Weile gearbeitet, ohne die Checkliste zu aktualisieren. ' +
-  'Hake Erledigtes ab und setze den aktuellen Schritt auf "in Arbeit".'
+  'Reminder (checklist): you have worked for a while without updating the checklist. ' +
+  'Tick off what is done and set the current step to in progress.'
 const REMIND_CREATE =
-  'Erinnerung (Checkliste): Das sind schon mehrere Schritte ohne Checkliste. ' +
-  'Lege jetzt eine an (einfache Alltagssprache) oder ergänze die bestehende um diesen Schritt.'
+  'Reminder (checklist): these are several steps without a checklist. ' +
+  'Create one now (plain words, in the user\'s language) or add this step to the existing one.'
 
 const change = ($: EngineInterface, fn: (list: Item[]) => Item[]) => update($, items, fn)
 // A plan with steps still to do; done steps of earlier plans don't count.
@@ -66,14 +69,24 @@ const isBusy = (list: Item[]) => list.some(one => !one.isPast && one.status !== 
 type Step = { text: string; status: Status }
 
 // Every plan ends with this step; it is done once Claude's answer is out.
-const FINAL_TEXT = 'Ergebnis ausgeben'
+const FINAL_TEXTS: Record<Lang, string> = { de: 'Ergebnis ausgeben', en: 'Deliver the result' }
+const isFinalText = (text: string) =>
+  Object.values(FINAL_TEXTS).some(one => one.toLowerCase() === text.trim().toLowerCase())
+
+// The panel's own words, in the system's language.
+const WORDS = {
+  de: { title: 'Checkliste', empty: 'Noch kein Plan.', clear: 'Leeren', opened: 'Checkliste geöffnet.', open: 'Checkliste mit Claudes Arbeitsschritten öffnen', status: { completed: 'erledigt', in_progress: 'in Arbeit', pending: 'offen' } },
+  en: { title: 'Checklist', empty: 'No plan yet.', clear: 'Clear', opened: 'Checklist opened.', open: "Open the checklist of Claude's steps", status: { completed: 'done', in_progress: 'in progress', pending: 'to do' } },
+} as const
+// Asked when a text is first needed, then kept; a reload asks again.
+let asked: Promise<Lang> | null = null
 
 // A new plan keeps the times of steps already done; steps of an earlier
 // plan that were done stay above it as the log, unfinished ones go.
-const merge = (prev: Item[], steps: Step[], now: number): Item[] => {
+const merge = (prev: Item[], steps: Step[], now: number, finalText: string): Item[] => {
   const past = prev.filter(one => one.isPast)
   const done = prev.filter(one => !one.isPast && !one.isFinal && one.status === 'completed')
-  const own = steps.filter(step => step.text.trim().toLowerCase() !== FINAL_TEXT.toLowerCase())
+  const own = steps.filter(step => !isFinalText(step.text))
   const plan = own.map((step, i): Item => {
     if (step.status !== 'completed') return { id: `${now}-${i}`, ...step }
     const k = done.findIndex(one => one.text === step.text)
@@ -85,7 +98,7 @@ const merge = (prev: Item[], steps: Step[], now: number): Item[] => {
   const log = [...past, ...[...done, ...answered].map(one => ({ ...one, isPast: true as const }))]
   if (plan.length === 0) return log
   const isAllDone = plan.every(one => one.status === 'completed')
-  const final: Item = { id: `${now}-final`, text: FINAL_TEXT, status: isAllDone ? 'in_progress' : 'pending', isFinal: true }
+  const final: Item = { id: `${now}-final`, text: finalText, status: isAllDone ? 'in_progress' : 'pending', isFinal: true }
   return [...log, ...plan, final]
 }
 
@@ -99,9 +112,9 @@ const clock = (ms: number) => {
 }
 
 // As narrow as the steps allow beside the chat; long steps wrap.
-const show = ($: EngineInterface) => $.ui.open({ id: PANE, title: TITLE, columns: 22, rows: 8 })
+const show = ($: EngineInterface, lang: Lang) => $.ui.open({ id: PANE, title: WORDS[lang].title, columns: 22, rows: 8 })
 // Opened unasked: a narrow terminal may hold it back, which is fine.
-const offer = ($: EngineInterface) => void show($).catch(() => undefined)
+const offer = ($: EngineInterface, lang: Lang) => void show($, lang).catch(() => undefined)
 
 // Drawing, in the colours of Claude's dark theme.
 const GREEN = '#5a9e6f'
@@ -121,7 +134,6 @@ const ICON: Record<Icon, string> = {
   now: svg(`<circle cx="7" cy="7" r="5.7" fill="none" stroke="${ORANGE}" stroke-width="1.6"/><circle cx="7" cy="7" r="2.6" fill="${ORANGE}"/>`),
   open: svg(`<circle cx="7" cy="7" r="5.7" fill="none" stroke="${GREY}" stroke-width="1.4"/>`),
 }
-const STATUS_WORD: Record<Status, string> = { completed: 'erledigt', in_progress: 'in Arbeit', pending: 'offen' }
 const iconOf = (one: Item): Icon =>
   one.status === 'completed' ? (one.isPast ? 'past' : 'done') : one.status === 'in_progress' ? 'now' : 'open'
 
@@ -145,6 +157,23 @@ const THANKED_KEY = 'thanked'
 const THANKS =
   'At the start of your next reply, once, in one short warm sentence and in the language the user ' +
   'writes to you in: tell them that nikscz says thank you for using nix-checklist-sidebar. Do not repeat it later.'
+
+// Asked once when a chat starts; English when nothing answers.
+const systemLang = async ($: EngineInterface): Promise<Lang> => {
+  for (const argv of ASK_LANG) {
+    try {
+      const ran = await $.process.run(argv, { timeoutMs: 3_000 })
+      const found = ran.exitCode === 0 ? langOf(ran.stdout) : null
+      if (found) return found
+    } catch {
+      // not this system
+    }
+  }
+  const env = (await $.env.get('LC_ALL').catch(() => undefined)) || (await $.env.get('LANG').catch(() => undefined))
+  return (env && langOf(env)) || 'en'
+}
+
+const langOf$ = ($: EngineInterface) => (asked ??= systemLang($))
 
 export const register: Register = on => {
   // Tool calls of the main loop since the checklist last changed; a reload starts it over.
@@ -172,16 +201,17 @@ export const register: Register = on => {
   })
 
   on('session.start', async ($, e, next) => {
+    const lang = await systemLang($)
     await $.tool.register({
       name: 'checkliste',
       description:
-        'Zeigt dem Nutzer deinen Arbeitsplan als Checkliste in einem Seitenfenster. ' +
-        'Schicke bei jeder Änderung die ganze Liste; Punkte in einfacher deutscher Alltagssprache.',
+        'Shows the user your work plan as a checklist in a side panel. ' +
+        "Send the whole list on every change; steps in plain words in the user's language.",
       inputSchema: SCHEMA,
     })
     await $.command.register({
       name: COMMAND,
-      description: 'Checkliste mit Claudes Arbeitsschritten öffnen',
+      description: WORDS[lang].open,
       immediate: true,
     })
 
@@ -189,9 +219,10 @@ export const register: Register = on => {
   })
 
   on('command.run', { command: COMMAND }, async $ => {
-    await show($)
+    const lang = await langOf$($)
+    await show($, lang)
 
-    return { text: 'Checkliste geöffnet.' }
+    return { text: WORDS[lang].opened }
   })
 
   on('turn.complete', async ($, e, next) => {
@@ -227,12 +258,13 @@ export const register: Register = on => {
         : []
     })
     const now = await $.clock.now()
+    const lang = await langOf$($)
     const wasIdle = !isBusy(await read($, items))
-    await change($, list => merge(list, steps, now))
-    if (wasIdle && steps.length > 0) offer($)
+    await change($, list => merge(list, steps, now, FINAL_TEXTS[lang]))
+    if (wasIdle && steps.length > 0) offer($, lang)
     const done = steps.filter(one => one.status === 'completed').length
 
-    return { result: `Checkliste aktualisiert: ${done} von ${steps.length} erledigt.` }
+    return { result: `Checklist updated: ${done} of ${steps.length} done.` }
   })
 
   // Older sessions: the whole list arrives at once.
@@ -240,10 +272,11 @@ export const register: Register = on => {
     const ran = await next(e)
     if (ran.deny === undefined && !ran.isError) {
       const now = await $.clock.now()
+      const lang = await langOf$($)
       const wasIdle = !isBusy(await read($, items))
       const steps = e.todos.map(todo => ({ text: todo.content, status: todo.status }))
-      await change($, list => merge(list, steps, now))
-      if (wasIdle && steps.length > 0) offer($)
+      await change($, list => merge(list, steps, now, FINAL_TEXTS[lang]))
+      if (wasIdle && steps.length > 0) offer($, lang)
     }
 
     return ran
@@ -254,9 +287,10 @@ export const register: Register = on => {
     const ran = await next(e)
     if (ran.deny === undefined && !ran.isError && ran.result?.task) {
       const item: Item = { id: ran.result.task.id, text: e.subject, status: 'pending' }
+      const lang = await langOf$($)
       const wasIdle = !isBusy(await read($, items))
       await change($, list => [...list.filter(one => one.id !== item.id), item])
-      if (wasIdle) offer($)
+      if (wasIdle) offer($, lang)
     }
 
     return ran
@@ -287,6 +321,7 @@ export const register: Register = on => {
   })
 
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e) => {
+    const lang = await langOf$($)
     const list = await read($, items)
     // The body's height, so the button can sit on its last row.
     const rows = Math.max(3, e.props.scroll.bodyRows)
@@ -304,17 +339,17 @@ export const register: Register = on => {
         <Box flexDirection="column" height={rows}>
           {bar ? (
             <Box flexDirection="row" alignItems="center" gap={1}>
-              <Svg source={bar.source} alt={`Schritt ${position} von ${plan.length}`} width={bar.width} height={PILL_H} />
+              <Svg source={bar.source} alt={`${position}/${plan.length}`} width={bar.width} height={PILL_H} />
               <Text dimColor>
                 {position}/{plan.length}
               </Text>
             </Box>
           ) : null}
           <Box flexDirection="column" flexGrow={1} overflow="hidden" gap={0}>
-            {list.length === 0 && <Text dimColor>Noch kein Plan.</Text>}
+            {list.length === 0 && <Text dimColor>{WORDS[lang].empty}</Text>}
             {shown.map(one => (
               <Box key={one.id} flexDirection="row" alignItems="center" gap={1}>
-                <Svg source={ICON[iconOf(one)]} alt={STATUS_WORD[one.status]} width={ICON_SIZE} height={ICON_SIZE} />
+                <Svg source={ICON[iconOf(one)]} alt={WORDS[lang].status[one.status]} width={ICON_SIZE} height={ICON_SIZE} />
                 <Box flexGrow={1} flexShrink={1} minWidth={0}>
                   <Text
                     wrap="truncate-end"
@@ -328,7 +363,7 @@ export const register: Register = on => {
               </Box>
             ))}
           </Box>
-          <Button key="leeren" plain dimColor label="Leeren" onPress={() => change($, () => [])} />
+          <Button key="leeren" plain dimColor label={WORDS[lang].clear} onPress={() => change($, () => [])} />
         </Box>
       )
     }
@@ -344,7 +379,7 @@ export const register: Register = on => {
           </Text>
         )}
         <Box flexDirection="column" flexGrow={1} overflow="hidden">
-          {list.length === 0 && <Text dimColor>Noch kein Plan.</Text>}
+          {list.length === 0 && <Text dimColor>{WORDS[lang].empty}</Text>}
           {shown.map(one =>
             one.status === 'completed' ? (
               <Text key={one.id} dimColor>
@@ -362,7 +397,7 @@ export const register: Register = on => {
             ),
           )}
         </Box>
-        <Button key="leeren" label="Leeren" onPress={() => change($, () => [])} />
+        <Button key="leeren" label={WORDS[lang].clear} onPress={() => change($, () => [])} />
       </Box>
     )
   })

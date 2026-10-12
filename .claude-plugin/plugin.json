@@ -1,7 +1,7 @@
 {
   "name": "nix-checklist-sidebar",
-  "version": "2.1.0",
-  "description": "Claudes Arbeitsplan als verständliche Checkliste in einer schmalen Seitenleiste – mit Uhrzeiten",
+  "version": "2.2.0",
+  "description": "Claude's work plan as a plain-language checklist in a narrow sidebar – with times",
   "types": "./types/index.d.ts",
   "author": {
     "name": "nikscz",
